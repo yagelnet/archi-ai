@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?eclipse version="3.4"?>
+<plugin>
+   <extension point="org.eclipse.ui.views">
+      <category id="local.archi.ai.category" name="Arch AI"/>
+      <view id="local.archi.ai.view"
+            name="Arch AI"
+            category="local.archi.ai.category"
+            class="local.archi.ai.ClaudeView"
+            allowMultiple="false"/>
+   </extension>
+   <extension point="org.eclipse.ui.commands">
+      <command id="local.archi.ai.openView" name="Открыть панель Arch AI"/>
+      <command id="local.archi.ai.openTerminal" name="Claude Code в терминале"/>
+   </extension>
+   <extension point="org.eclipse.ui.handlers">
+      <handler commandId="local.archi.ai.openView" class="local.archi.ai.OpenViewHandler"/>
+      <handler commandId="local.archi.ai.openTerminal" class="local.archi.ai.OpenTerminalHandler"/>
+   </extension>
+   <extension point="org.eclipse.ui.bindings">
+      <key commandId="local.archi.ai.openView"
+           schemeId="org.eclipse.ui.defaultAcceleratorConfiguration"
+           sequence="M1+M3+L"/>
+   </extension>
+   <extension point="org.eclipse.ui.menus">
+      <menuContribution locationURI="menu:org.eclipse.ui.main.menu?after=window">
+         <menu id="local.archi.ai.menu" label="Arch AI">
+            <command commandId="local.archi.ai.openView" label="Панель Arch AI" style="push"/>
+            <command commandId="local.archi.ai.openTerminal" label="Claude Code в терминале" style="push"/>
+         </menu>
+      </menuContribution>
+   </extension>
+</plugin>
