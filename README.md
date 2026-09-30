@@ -1,136 +1,136 @@
-# Arch AI — ИИ-ассистент для Archi
+# Arch AI — AI assistant for Archi
 
-Плагин для [Archi](https://www.archimatetool.com/) 5.x. Добавляет в Archi чат с ИИ. Ассистент видит открытую модель ArchiMate и может её читать и изменять: создавать элементы, связи и представления, раскладывать схемы, сохранять модель.
+A plugin for [Archi](https://www.archimatetool.com/) 5.x that adds an AI chat panel. The assistant sees the open ArchiMate model and can read and change it: create elements, relationships and views, lay out diagrams, and save the model.
 
-С моделью ассистент работает через MCP-сервер [archi-mcp-server](https://github.com/slipeer/archi-mcp-server) (77 инструментов). Ассистентом может быть Claude Code по подписке или любая модель, доступная через API: Anthropic, OpenAI и OpenAI-совместимые сервисы, а также локальные модели.
+The assistant works with the model through the MCP server [archi-mcp-server](https://github.com/slipeer/archi-mcp-server) (77 tools). The assistant can be Claude Code on a subscription, or any model available through an API: Anthropic, OpenAI and OpenAI-compatible services, and local models.
 
-*English: an AI chat panel for the Archi modelling tool. It reads and edits the open ArchiMate model through archi-mcp-server. Backends: Claude Code (subscription) or any Anthropic / OpenAI-compatible API, including local models (Ollama, LM Studio). The UI is in Russian.*
+> The plugin's user interface is in Russian. UI labels below are given in English with the original Russian in quotes.
 
-## Возможности
+## Features
 
-- **Панель «Arch AI»** (Ctrl+Alt+L) с тремя вкладками: «Чат», «Правила моделирования», «Подключение».
-- **Контекст выделения.** Плагин передаёт ассистенту, что выделено в Archi: элементы, связи, представление. Отключается флажком «Добавлять выделение».
-- **Синхронизация модели.** MCP-сервер работает с одной моделью. Плагин переключает его на ту, с которой вы работаете: при открытии панели, при смене выделения и перед каждым запросом.
-- **Вложения.** К запросу можно приложить файлы (xlsx, docx, pdf, изображения и т. д.). Разбирает их сама модель.
-- **Правила моделирования.** Этот текст отправляется перед каждым запросом. Встроенный шаблон содержит общие правила ArchiMate 3.1, его можно заменить своим.
-- **Claude Code в терминале** (меню «Arch AI»). Открывает терминал в папке модели, где Claude Code уже подключён к MCP-серверу Archi.
-- **Jira и Confluence.** Если запущен отдельный плагин `local.archi.atlassian` (MCP на `http://127.0.0.1:18091/mcp`), ассистент получает и его инструменты.
+- **Arch AI panel** (Ctrl+Alt+L) with three tabs: Chat («Чат»), Modeling rules («Правила моделирования»), Connection («Подключение»).
+- **Selection context.** The plugin tells the assistant what is selected in Archi: elements, relationships, the view. Turn it off with the *Add selection* checkbox («Добавлять выделение»).
+- **Model sync.** The MCP server works with one model at a time. The plugin switches it to the model you are working with: when the panel opens, when the selection changes, and before every request.
+- **Attachments.** Files (xlsx, docx, pdf, images, etc.) can be attached to a request. The model reads them itself.
+- **Modeling rules.** This text is sent before every request. The built-in template holds general ArchiMate 3.1 rules; replace it with your own.
+- **Claude Code in a terminal** (menu *Arch AI*). Opens a terminal in the model's folder with Claude Code already connected to the Archi MCP server.
+- **Jira and Confluence.** If the separate plugin `local.archi.atlassian` is running (MCP at `http://127.0.0.1:18091/mcp`), its tools are given to the assistant as well.
 
-## Режимы подключения
+## Connection modes
 
-### Claude Code (подписка)
+### Claude Code (subscription)
 
-Плагин запускает `claude -p` в режиме stream-json со своим MCP-конфигом (`--strict-mcp-config`). Ассистенту без подтверждения разрешены инструменты `mcp__archi__*`, а также `Read`, `Glob`, `Grep` и `Bash`. Диалог продолжается через `--resume`. Вложения передаются путями к файлам, модель читает их сама.
+The plugin runs `claude -p` in stream-json mode with its own MCP config (`--strict-mcp-config`). The assistant may use `mcp__archi__*`, `Read`, `Glob`, `Grep` and `Bash` without asking. The conversation continues via `--resume`. Attachments are passed as file paths; the model reads them itself.
 
-Путь к `claude` плагин ищет по порядку: переменная `CLAUDE_CODE_PATH`, затем `~/.local/bin/claude(.exe)`, затем `PATH`.
+The `claude` executable is looked up in this order: the `CLAUDE_CODE_PATH` variable, then `~/.local/bin/claude(.exe)`, then `PATH`.
 
 ### API
 
-Цикл работы с инструментами реализован в самом плагине, без внешних зависимостей. Готовые настройки есть для этих сервисов:
+The tool-use loop is implemented in the plugin itself, with no external dependencies. Presets are included for these services:
 
-| Сервис | Протокол | Переменная для ключа |
+| Service | Protocol | Key variable |
 |---|---|---|
 | Anthropic (Claude API) | Anthropic Messages | `ANTHROPIC_API_KEY` |
 | OpenAI | OpenAI Chat Completions | `OPENAI_API_KEY` |
 | OpenRouter | OpenAI | `OPENROUTER_API_KEY` |
 | DeepSeek | OpenAI | `DEEPSEEK_API_KEY` |
 | Mistral | OpenAI | `MISTRAL_API_KEY` |
-| Z.ai (GLM), в т. ч. GLM Coding Plan | OpenAI | `ZAI_API_KEY` |
+| Z.ai (GLM), incl. GLM Coding Plan | OpenAI | `ZAI_API_KEY` |
 | YandexGPT | OpenAI | `YANDEX_API_KEY` |
-| Ollama, LM Studio (локально) | OpenAI | — |
-| Любой OpenAI-совместимый | OpenAI | — |
+| Ollama, LM Studio (local) | OpenAI | — |
+| Any OpenAI-compatible service | OpenAI | — |
 
-Особенности:
-- **Инструменты загружаются по требованию.** В системном промпте передаётся только каталог инструментов: имя и первая фраза описания, около 2,5 тыс. токенов. Полные схемы модель запрашивает сама инструментом `load_tools`. Первый запрос получается около 10 тыс. символов, а не 160 тыс.
-- **Файлы в Anthropic** загружаются через Files API. Таблицы и документы разбираются в песочнице code execution, она оплачивается отдельно.
-- **Ключ API** хранится в `settings.properties` в зашифрованном виде (AES-GCM). Ключ шифрования лежит в отдельном файле `.secret`. Если ключ не задан в плагине, берётся из переменной окружения сервиса.
-- **TLS.** Плагин доверяет сертификатам JRE и хранилищу Windows (Windows-ROOT). Поэтому он работает за антивирусами и прокси, которые подменяют HTTPS-сертификат своим корневым.
+Details:
+- **Tools are loaded on demand.** The system prompt carries only a tool catalogue: each tool's name and the first sentence of its description, about 2.5k tokens. The model requests full schemas itself with the `load_tools` tool. The first request is about 10k characters instead of 160k.
+- **Files with Anthropic** are uploaded via the Files API. Spreadsheets and documents are processed in the code execution sandbox, which is billed separately.
+- **The API key** is stored in `settings.properties`, encrypted with AES-GCM. The encryption key is kept in a separate `.secret` file. If no key is set in the plugin, the service's environment variable is used.
+- **TLS.** The plugin trusts both the JRE certificates and the Windows store (Windows-ROOT), so it works behind antivirus software and proxies that re-sign HTTPS with their own root certificate.
 
-## Требования
+## Requirements
 
-- Archi 5.x (проверено на 5.6), Windows.
-- Плагин [archi-mcp-server](https://github.com/slipeer/archi-mcp-server/releases) с включённым автозапуском. По умолчанию он слушает `http://127.0.0.1:18090/mcp`.
-- Для режима Claude Code — установленный [Claude Code](https://claude.com/claude-code) с активной подпиской.
-- Для режима API — ключ выбранного сервиса или локальная модель.
+- Archi 5.x (tested on 5.6), Windows.
+- The [archi-mcp-server](https://github.com/slipeer/archi-mcp-server/releases) plugin with auto-start enabled. By default it listens on `http://127.0.0.1:18090/mcp`.
+- For Claude Code mode: [Claude Code](https://claude.com/claude-code) installed, with an active subscription.
+- For API mode: a key for the chosen service, or a local model.
 
-## Установка
+## Installation
 
-1. Установите archi-mcp-server и включите в его настройках автозапуск. Без автозапуска сервер запускается вручную: *MCP Server → Start MCP Server*.
-2. Скачайте `ArchAI_<версия>.archiplugin` из [Releases](../../releases) или соберите сами (см. ниже).
-3. В Archi: *Help → Manage Plugins → Install*, выберите файл и перезапустите Archi.
-4. Откройте панель: меню *Arch AI → Панель Arch AI* или Ctrl+Alt+L.
-5. На вкладке «Подключение» выберите режим и нажмите «Сохранить и проверить подключение».
+1. Install archi-mcp-server and enable auto-start in its settings. Without auto-start, start it manually: *MCP Server → Start MCP Server*.
+2. Download `ArchAI_<version>.archiplugin` from [Releases](../../releases) or build it yourself (see below).
+3. In Archi: *Help → Manage Plugins → Install*, choose the file, restart Archi.
+4. Open the panel: menu *Arch AI → Arch AI panel* («Панель Arch AI») or Ctrl+Alt+L.
+5. On the *Connection* tab, pick a mode and click *Save and test connection* («Сохранить и проверить подключение»).
 
-> Если вы обновляетесь с версии, где плагин назывался `local.archi.claude`, удалите старый jar из `%APPDATA%\Archi\dropins`. Вкладку «Could not create the view: local.archi.claude.view» просто закройте.
+> Upgrading from a version where the plugin was called `local.archi.claude`: delete the old jar from `%APPDATA%\Archi\dropins`. If a tab says "Could not create the view: local.archi.claude.view", just close it.
 
-## Файлы настроек
+## Settings files
 
-Все настройки лежат в `~/.archi-claude/`:
+All settings live in `~/.archi-claude/`:
 
-| Файл | Назначение |
+| File | Purpose |
 |---|---|
-| `settings.properties` | режим, сервис, адрес API, модель, адреса MCP-серверов, зашифрованные ключи |
-| `.secret` | ключ шифрования для API-ключей |
-| `modeling-rules.md` | правила моделирования (вкладка «Правила моделирования») |
-| `mcp-archi.json` | MCP-конфиг для Claude Code, создаётся автоматически |
+| `settings.properties` | mode, service, API endpoint, model, MCP server URLs, encrypted keys |
+| `.secret` | encryption key for API keys |
+| `modeling-rules.md` | modeling rules (the *Modeling rules* tab) |
+| `mcp-archi.json` | MCP config for Claude Code, generated automatically |
 
-Основные параметры `settings.properties`:
+Main `settings.properties` keys:
 
 ```properties
-mode=claude-code                 # или api
-api.provider=anthropic           # id сервиса из таблицы выше
+mode=claude-code                 # or api
+api.provider=anthropic           # service id from the table above
 mcp.url=http://127.0.0.1:18090/mcp
 mcp.atlassian.url=http://127.0.0.1:18091/mcp
 ```
 
-## Сборка
+## Building
 
-Нужны JDK 21+ и установленный Archi, из которого берутся зависимости.
+Requires JDK 21+ and an installed Archi, which provides the dependencies.
 
 ```powershell
-.\build.ps1                                   # Archi в C:\Program Files\Archi, javac в PATH
+.\build.ps1                                   # Archi in C:\Program Files\Archi, javac on PATH
 .\build.ps1 -ArchiHome D:\Archi -JavaHome 'C:\Program Files\Java\jdk-21'
 ```
 
-Результат появляется в корне проекта:
-- `local.archi.ai_<версия>.jar` — бандл. Для быстрой проверки его можно положить в `%APPDATA%\Archi\dropins`.
-- `ArchAI_<версия>.archiplugin` — дистрибутив для *Manage Plugins → Install*.
+Output in the project root:
+- `local.archi.ai_<version>.jar` — the bundle. For a quick try, drop it into `%APPDATA%\Archi\dropins`.
+- `ArchAI_<version>.archiplugin` — the package for *Manage Plugins → Install*.
 
-Версия берётся из `Bundle-Version` в `META-INF/MANIFEST.MF`.
+The version comes from `Bundle-Version` in `META-INF/MANIFEST.MF`.
 
-## Устройство
+## Code layout
 
 ```
 src/local/archi/ai/
-  ClaudeView.java          панель: вкладки «Чат», «Правила моделирования», «Подключение»
-  ChatBackend.java         общий интерфейс режимов
-  ClaudeProcess.java       режим Claude Code: процесс claude -p, stream-json
-  ApiAgent.java            режим API: цикл tool use, Anthropic / OpenAI, load_tools, вложения
-  McpClient.java           клиент MCP (streamable HTTP, JSON-RPC)
-  McpTools.java            интерфейс набора инструментов MCP
-  ModelSync.java           переключение активной модели MCP-сервера
-  ArchiContext.java        описание выделения в Archi для промпта
-  Attachment.java          вложенные файлы
-  AiSettings.java          настройки и шифрование ключей
-  ClaudeEnv.java           пути, системный промпт, правила по умолчанию, MCP-конфиг
-  Tls.java                 доверенные сертификаты: JRE + Windows-ROOT
-  Json.java                минимальный JSON без зависимостей
-  OpenViewHandler.java     команда «Панель Arch AI»
-  OpenTerminalHandler.java команда «Claude Code в терминале»
-test/local/archi/ai/       ручные проверки (main-классы), см. ниже
+  ClaudeView.java          panel: Chat, Modeling rules, Connection tabs
+  ChatBackend.java         common interface of the two modes
+  ClaudeProcess.java       Claude Code mode: claude -p process, stream-json
+  ApiAgent.java            API mode: tool-use loop, Anthropic / OpenAI, load_tools, attachments
+  McpClient.java           MCP client (streamable HTTP, JSON-RPC)
+  McpTools.java            interface of an MCP tool set
+  ModelSync.java           switches the MCP server's active model
+  ArchiContext.java        describes the Archi selection for the prompt
+  Attachment.java          attached files
+  AiSettings.java          settings and key encryption
+  ClaudeEnv.java           paths, system prompt, default rules, MCP config
+  Tls.java                 trusted certificates: JRE + Windows-ROOT
+  Json.java                minimal dependency-free JSON
+  OpenViewHandler.java     "Arch AI panel" command
+  OpenTerminalHandler.java "Claude Code in terminal" command
+test/local/archi/ai/       manual checks (main classes), see below
 ```
 
-Внешних библиотек нет: только JDK, Eclipse/SWT и API Archi.
+No external libraries: only the JDK, Eclipse/SWT and the Archi API.
 
-### Проверки
+### Checks
 
-Это не JUnit, а классы с методом `main`. Запускаются вручную при работающем Archi с MCP-сервером.
+These are not JUnit tests but classes with a `main` method. Run them by hand while Archi and its MCP server are running.
 
-- `McpTest` — подключается к MCP-серверу, выводит число инструментов и вызывает `get-model-info`.
-- `McpSize` — считает размер описаний и схем инструментов.
-- `AgentLoopTest` — прогоняет цикл ApiAgent на фальшивом LLM-сервере с реальным MCP. Для Anthropic нужна переменная `ANTHROPIC_API_KEY` с любым значением. Чтобы не затронуть свои настройки, запускайте с `-Duser.home=<временная папка>`.
-- `SmokeTest` — один запрос через Claude Code.
+- `McpTest` — connects to the MCP server, prints the tool count and calls `get-model-info`.
+- `McpSize` — measures the size of tool descriptions and schemas.
+- `AgentLoopTest` — runs the ApiAgent loop against a fake LLM server with the real MCP server. For Anthropic, set `ANTHROPIC_API_KEY` to any value. Run with `-Duser.home=<temp folder>` so your own settings are not touched.
+- `SmokeTest` — one request through Claude Code.
 
-## Лицензия
+## License
 
 [MIT](LICENSE)
