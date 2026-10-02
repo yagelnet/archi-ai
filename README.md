@@ -14,7 +14,6 @@ The assistant works with the model through the MCP server [archi-mcp-server](htt
 - **Attachments.** Files (xlsx, docx, pdf, images, etc.) can be attached to a request. The model reads them itself.
 - **Modeling rules.** This text is sent before every request. The built-in template holds general ArchiMate 3.1 rules; replace it with your own.
 - **Claude Code in a terminal** (menu *Arch AI*). Opens a terminal in the model's folder with Claude Code already connected to the Archi MCP server.
-- **Jira and Confluence.** If the separate plugin `local.archi.atlassian` is running (MCP at `http://127.0.0.1:18091/mcp`), its tools are given to the assistant as well.
 
 ## Connection modes
 
@@ -80,7 +79,6 @@ Main `settings.properties` keys:
 mode=claude-code                 # or api
 api.provider=anthropic           # service id from the table above
 mcp.url=http://127.0.0.1:18090/mcp
-mcp.atlassian.url=http://127.0.0.1:18091/mcp
 ```
 
 ## Building
